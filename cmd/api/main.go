@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/joho/godotenv"
-	"github.com/travboz/backend-projects/go-and-mongo-mohd/handlers"
+	"github.com/travboz/backend-projects/go-and-mongo-mohd/internal/handlers"
 )
 
 func init() {

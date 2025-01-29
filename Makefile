@@ -35,7 +35,9 @@ list-containers:
 
 
 # Seeding with users
+SCRIPTS_DIR=./scripts
+
 .PHONY: seed-db
 seed-db:
 	@echo "Seeding database with users..."
-	bash seed_users.sh
+	bash $(SCRIPTS_DIR)/seed_users.sh

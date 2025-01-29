@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/travboz/backend-projects/go-and-mongo-mohd/config"
-	"github.com/travboz/backend-projects/go-and-mongo-mohd/models"
+	"github.com/travboz/backend-projects/go-and-mongo-mohd/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
