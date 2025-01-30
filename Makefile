@@ -2,7 +2,7 @@ include .env # read from .env file
 
 OUTPUT_BINARY=mongo-crud
 OUTPUT_DIR=./bin
-ENTRY_DIR = ./
+ENTRY_DIR = ./cmd/api
 
 .PHONY: build
 build:
@@ -22,12 +22,12 @@ clean:
 .PHONY: up
 up:	
 	@echo "Starting containers..."
-	docker compose up -d
+	@docker compose up -d
 
 .PHONY: down
 down:
 	@echo "Stopping containers and deleting volumes..."
-	docker compose down -v
+	@docker compose down -v
 
 .PHONY: list-con
 list-containers:
@@ -41,3 +41,8 @@ SCRIPTS_DIR=./scripts
 seed-db:
 	@echo "Seeding database with users..."
 	bash $(SCRIPTS_DIR)/seed_users.sh
+
+
+.PHONY: restart
+restart: down up run
+	@echo "Restarting..."

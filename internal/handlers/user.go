@@ -28,6 +28,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user.ID = primitive.NewObjectID()
+
 	collection := client.Database("mongo_user_crud").Collection("users")
 	result, err := collection.InsertOne(context.Background(), user)
 	if err != nil {

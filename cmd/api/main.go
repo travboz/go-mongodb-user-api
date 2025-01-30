@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/travboz/backend-projects/go-and-mongo-mohd/internal/handlers"
@@ -27,7 +28,7 @@ func main() {
 	mux.HandleFunc("PUT /users/{id}", handlers.UpdateUser)
 	mux.HandleFunc("DELETE /users/{id}", handlers.DeleteUser)
 
-	addr := ":8080"
+	addr := os.Getenv("SERVER_PORT")
 
 	fmt.Printf("Server running at http://localhost%s", addr)
 
