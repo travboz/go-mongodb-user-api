@@ -1,31 +1,43 @@
-# Go User API
+# Go MongoDB User API
 
-A simple Go web server that manages user data in an in-memory cache with thread safety.
+TODO:
 
 ## Features
-- Thread-Safe In-Memory Storage: Uses sync.RWMutex to handle concurrent access.
-- Abstraction of storage logic for decoupled database
-- RESTful API: Supports creating, retrieving, and deleting users via HTTP endpoints.
-- Minimal & Efficient: Simple implementation with a focus on performance.
+
+TODO:
 
 ## Installation
+
 1. Clone this repository:
    ```sh
-   git clone https://github.com/travboz/go-user-web-server.git
-   cd go-user-web-server
+   git clone TODO:
+   cd TODO:
    ```
-2. Run server:
+2. Run docker container:
+    ```sh
+    make up
+    ```
+3. Seed MongoDB instance:
    ```sh
-   make run
+   make seed-db
    ```
-3. Navigate to `http://localhost<SERVER_PORT>` and call an endpoint
+4. Run server:
+    ```sh
+    make run
+    ```
+5. Navigate to `http://localhost<SERVER_PORT>` and call an endpoint
 
 ### `.env` file
 This server uses a `.env` file for basic configuration.
 Here is an example of the `.env`:
    ```sh
-   SERVER_PORT=":8080"
-   ENV="development"
+    DB_CONTAINER_NAME=MONGO-USER-CRUD
+    SERVER_PORT=":8080"
+    MONGO_DB_NAME=mongo_user_crud
+    MONGO_DB_USERNAME=user
+    MONGO_DB_PASSWORD=secret
+    MONGODB_URI=mongodb://user:secret@localhost:27017/mongo_user_crud?authSource=admin&readPreference=primary&appname=MongDB%20Compass&directConnection=true&ssl=false
+    COMPASS_USER_MONGODB_URI=mongodb://user:secret@localhost:27017/mongo_user_crud?authSource=admin&readPreference=primary&appname=MongDB%20Compass&directConnection=true&ssl=false
    ```
    
 ## API Endpoints
@@ -45,18 +57,28 @@ Here is an example of the `.env`:
 
 ```json
 {
-   "name": "example"
+  "name": "bob jones",
+  "email": "bob@jones.com",
+  "favourite_number": 25,
+  "active": false
 }
 ```
 
 #### Create a User
 ```sh
-curl -X POST -H "Content-Type: application/json" -d '{"name": "Alice"}' http://localhost:4545/users
+curl -X POST "http://localhost:8080/users" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "name": "bob jones",
+       "email": "bob@jones.com",
+       "favourite_number": 25,
+       "active": false
+     }'
 ```
 
 #### Get All Users
 ```sh
-curl http://localhost:4545/users
+curl http://localhost:8080/users
 ```
 
 ## Contributing
