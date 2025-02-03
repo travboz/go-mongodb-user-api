@@ -27,9 +27,25 @@ func (m *MongoStore) Insert(ctx context.Context, u models.User) error {
 
 	return err
 }
-func (m *MongoStore) GetById(ctx context.Context, id int64) (*models.User, error) {
-	return nil, nil
+
+func (m *MongoStore) GetById(ctx context.Context, id string) (*models.User, error) {
+
+	user_id, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	collection := m.Client.Database("mongo_user_crud").Collection("users")
+	var user models.User
+	result := collection.FindOne(ctx, bson.M{"_id": user_id})
+
+	if err := result.Decode(&user); err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }
+
 func (m *MongoStore) FetchAllUsers(ctx context.Context) ([]*models.User, error) {
 	collection := m.Client.Database("mongo_user_crud").Collection("users")
 	cursor, err := collection.Find(ctx, bson.D{})
@@ -52,10 +68,24 @@ func (m *MongoStore) FetchAllUsers(ctx context.Context) ([]*models.User, error) 
 	return users, nil
 }
 
-func (m *MongoStore) UpdateUser(ctx context.Context, id int64, u models.User) error {
+func (m *MongoStore) UpdateUser(ctx context.Context, id string, u models.User) error {
+	update_id, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	collection := m.Client.Database("mongo_user_crud").Collection("users")
+	var user models.User
+	result := collection.FindOne(ctx, bson.M{"_id": update_id})
+
+	if err := result.Decode(&user); err != nil {
+		return err
+	}
+
 	return nil
 }
-func (m *MongoStore) DeleteUserById(ctx context.Context, id int64) error {
+
+func (m *MongoStore) DeleteUserById(ctx context.Context, id string) error {
 	return nil
 }
 

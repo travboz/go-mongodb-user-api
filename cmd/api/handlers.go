@@ -48,26 +48,20 @@ func (app *application) GetAllUsersHandler(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(users)
 }
 
-// // GetUserById - fetch a user by a given id
-// func (app *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
-// 	req_id := r.PathValue("id")
-// 	id, err := primitive.ObjectIDFromHex(req_id)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
+// GetUserById - fetch a user by a given id
+func (app *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
+	req_id := r.PathValue("id")
+	ctx := r.Context()
 
-// 	collection := app.Client.Database("mongo_user_crud").Collection("users")
-// 	var user models.User
-// 	result := collection.FindOne(context.Background(), bson.M{"_id": id})
+	user, err := app.Storage.GetById(ctx, req_id)
 
-// 	if err := result.Decode(&user); err != nil {
-// 		http.Error(w, err.Error(), http.StatusNotFound)
-// 		return
-// 	}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
 
-// 	json.NewEncoder(w).Encode(user)
-// }
+	json.NewEncoder(w).Encode(user)
+}
 
 // // UpdateUser - update a user in the collection
 // func (app *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
