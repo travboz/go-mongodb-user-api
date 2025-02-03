@@ -63,51 +63,40 @@ func (app *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Reques
 	json.NewEncoder(w).Encode(user)
 }
 
-// // UpdateUser - update a user in the collection
-// func (app *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
-// 	req_id := r.PathValue("id")
-// 	id, err := primitive.ObjectIDFromHex(req_id)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
+// UpdateUser - update a user in the collection
+func (app *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
+	req_id := r.PathValue("id")
+	ctx := r.Context()
 
-// 	var updatedUser models.User
-// 	if err := json.NewDecoder(r.Body).Decode(&updatedUser); err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
+	var updatedUser models.User
+	if err := json.NewDecoder(r.Body).Decode(&updatedUser); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-// 	collection := app.Client.Database("mongo_user_crud").Collection("users")
-// 	filter := bson.M{"_id": id}
-// 	update := bson.M{"$set": updatedUser}
+	err := app.Storage.UpdateUser(ctx, req_id, updatedUser)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-// 	result, err := collection.UpdateOne(context.Background(), filter, update)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "user updated successfully",
+	})
+}
 
-// 	json.NewEncoder(w).Encode(result)
-// }
+// DeleteUserById - remove a user from a collection by a specific id
+func (app *application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	req_id := r.PathValue("id")
+	ctx := r.Context()
 
-// // DeleteUserById - remove a user from a collection by a specific id
-// func (app *application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-// 	req_id := r.PathValue("id")
+	err := app.Storage.DeleteUserById(ctx, req_id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-// 	id, err := primitive.ObjectIDFromHex(req_id)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-
-// 	collection := app.Client.Database("mongo_user_crud").Collection("users")
-// 	filter := bson.M{"_id": id}
-// 	result, err := collection.DeleteOne(context.Background(), filter)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusInternalServerError)
-// 		return
-// 	}
-
-// 	json.NewEncoder(w).Encode(result)
-// }
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": fmt.Sprintf("user with id [%s] deleted successfully", req_id),
+	})
+}

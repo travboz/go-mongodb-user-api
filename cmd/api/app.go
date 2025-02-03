@@ -23,8 +23,8 @@ func (app *application) MountRoutes() http.Handler {
 	mux.HandleFunc("POST /users", app.CreateUserHandler)
 	mux.HandleFunc("GET /users", app.GetAllUsersHandler)
 	mux.HandleFunc("GET /users/{id}", app.GetUserByIdHandler)
-	// mux.HandleFunc("PUT /users/{id}", app.UpdateUserHandler)
-	// mux.HandleFunc("DELETE /users/{id}", app.DeleteUserHandler)
+	mux.HandleFunc("PUT /users/{id}", app.UpdateUserHandler)
+	mux.HandleFunc("DELETE /users/{id}", app.DeleteUserHandler)
 
 	return mux
 }

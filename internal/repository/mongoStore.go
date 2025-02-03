@@ -75,10 +75,11 @@ func (m *MongoStore) UpdateUser(ctx context.Context, id string, u models.User) e
 	}
 
 	collection := m.Client.Database("mongo_user_crud").Collection("users")
-	var user models.User
-	result := collection.FindOne(ctx, bson.M{"_id": update_id})
+	filter := bson.M{"_id": update_id}
+	update := bson.M{"$set": u}
 
-	if err := result.Decode(&user); err != nil {
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
 		return err
 	}
 
@@ -86,6 +87,18 @@ func (m *MongoStore) UpdateUser(ctx context.Context, id string, u models.User) e
 }
 
 func (m *MongoStore) DeleteUserById(ctx context.Context, id string) error {
+	delete_id, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	collection := m.Client.Database("mongo_user_crud").Collection("users")
+	filter := bson.M{"_id": delete_id}
+	_, err = collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
