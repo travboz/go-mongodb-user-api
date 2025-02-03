@@ -1,41 +1,30 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"os"
+	"net/http"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/travboz/backend-projects/go-and-mongo-mohd/internal/repository"
 )
 
 type application struct {
-	Client *mongo.Client
+	Storage repository.Storage
 }
 
-func NewApplication() (*application, error) {
-	uri := os.Getenv("MONGODB_URI")
-	if uri == "" {
-		return nil, fmt.Errorf("MONGODB_URI is not set")
-	}
-
-	clientOptions := options.Client().ApplyURI(uri)
-	client, err := mongo.Connect(context.Background(), clientOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	// verifying connection
-	err = client.Ping(context.Background(), nil)
-	if err != nil {
-		return nil, err
-	}
-
+func NewApplication(s repository.Storage) *application {
 	return &application{
-		Client: client,
-	}, nil
+		Storage: s,
+	}
 }
 
-func (a *application) Shutdown(ctx context.Context) error {
-	return a.Client.Disconnect(ctx)
+func (app *application) MountRoutes() http.Handler {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /", app.HelloHandler)
+	mux.HandleFunc("POST /users", app.CreateUserHandler)
+	mux.HandleFunc("GET /users", app.GetAllUsersHandler)
+	mux.HandleFunc("GET /users/{id}", app.GetUserByIdHandler)
+	mux.HandleFunc("PUT /users/{id}", app.UpdateUserHandler)
+	mux.HandleFunc("DELETE /users/{id}", app.DeleteUserHandler)
+
+	return mux
 }

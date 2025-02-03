@@ -6,8 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/travboz/backend-projects/go-and-mongo-mohd/internal/db"
+	"github.com/travboz/backend-projects/go-and-mongo-mohd/internal/repository"
 )
 
 func init() {
@@ -19,32 +22,45 @@ func init() {
 }
 
 func main() {
-	app, err := NewApplication()
+	uri := os.Getenv("MONGODB_URI")
+	if uri == "" {
+		log.Fatal("MONGODB_URI is not set")
+	}
+
+	mongo, err := db.NewMongoDBClient(uri)
+	if err != nil {
+		log.Fatal("Unable to instantiate new Mongo client:", err)
+	}
+
+	defer mongo.Disconnect(context.Background())
+
+	mongoStore := repository.NewMongoStore(mongo)
+
+	app := NewApplication(&mongoStore)
 	if err != nil {
 		log.Fatalf("Failed to initialize application: %v", err)
 	}
 
 	// Ensure MongoDB disconnects when the program exits
 	defer func() {
-		if err := app.Shutdown(context.Background()); err != nil {
+		if err := app.Storage.Shutdown(context.Background()); err != nil {
 			log.Printf("Error shutting down MongoDB client: %v", err)
 		}
 	}()
 
-	mux := http.NewServeMux()
+	mux := app.MountRoutes()
 
-	mux.HandleFunc("GET /", app.HelloHandler)
-	mux.HandleFunc("POST /users", app.CreateUserHandler)
-	mux.HandleFunc("GET /users", app.GetAllUsersHandler)
-	mux.HandleFunc("GET /users/{id}", app.GetUserByIdHandler)
-	mux.HandleFunc("PUT /users/{id}", app.UpdateUserHandler)
-	mux.HandleFunc("DELETE /users/{id}", app.DeleteUserHandler)
+	srv := &http.Server{
+		Addr:         os.Getenv("SERVER_PORT"),
+		Handler:      mux,
+		WriteTimeout: time.Second * 30, // if our server takes more than 30 seconds to write a response to a client - it times out
+		ReadTimeout:  time.Second * 10, // diddo but to read
+		IdleTimeout:  time.Minute,      // diddo but when idling
+	}
 
-	addr := os.Getenv("SERVER_PORT")
+	fmt.Printf("Server running at http://localhost%s", srv.Addr)
 
-	fmt.Printf("Server running at http://localhost%s", addr)
-
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
 }

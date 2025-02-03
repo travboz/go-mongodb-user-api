@@ -12,12 +12,12 @@ import (
 )
 
 // HelloHandler - a helath check handler
-func (a *application) HelloHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) HelloHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello there, welcome to the Mongo CRUD!")
 }
 
 // CreateUser - create a new user
-func (a *application) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -25,21 +25,25 @@ func (a *application) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	err := a.store.Insert(user)
+
 	user.ID = primitive.NewObjectID()
 
-	collection := a.Client.Database("mongo_user_crud").Collection("users")
-	result, err := collection.InsertOne(context.Background(), user)
+	collection := app.Storage.Database("mongo_user_crud").Collection("users")
+	_, err = collection.InsertOne(context.Background(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	json.NewEncoder(w).Encode(result)
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "user inserted successfully",
+	})
 }
 
 // GetAllUsers - get all users within the collection
-func (a *application) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
-	collection := a.Client.Database("mongo_user_crud").Collection("users")
+func (app *application) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	collection := app.Client.Database("mongo_user_crud").Collection("users")
 	cursor, err := collection.Find(context.Background(), bson.D{})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -63,7 +67,7 @@ func (a *application) GetAllUsersHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // GetUserById - fetch a user by a given id
-func (a *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
 	req_id := r.PathValue("id")
 	id, err := primitive.ObjectIDFromHex(req_id)
 	if err != nil {
@@ -71,7 +75,7 @@ func (a *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	collection := a.Client.Database("mongo_user_crud").Collection("users")
+	collection := app.Client.Database("mongo_user_crud").Collection("users")
 	var user models.User
 	result := collection.FindOne(context.Background(), bson.M{"_id": id})
 
@@ -84,7 +88,7 @@ func (a *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Request)
 }
 
 // UpdateUser - update a user in the collection
-func (a *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	req_id := r.PathValue("id")
 	id, err := primitive.ObjectIDFromHex(req_id)
 	if err != nil {
@@ -98,7 +102,7 @@ func (a *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	collection := a.Client.Database("mongo_user_crud").Collection("users")
+	collection := app.Client.Database("mongo_user_crud").Collection("users")
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": updatedUser}
 
@@ -112,7 +116,7 @@ func (a *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 // DeleteUserById - remove a user from a collection by a specific id
-func (a *application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+func (app *application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	req_id := r.PathValue("id")
 
 	id, err := primitive.ObjectIDFromHex(req_id)
@@ -121,7 +125,7 @@ func (a *application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	collection := a.Client.Database("mongo_user_crud").Collection("users")
+	collection := app.Client.Database("mongo_user_crud").Collection("users")
 	filter := bson.M{"_id": id}
 	result, err := collection.DeleteOne(context.Background(), filter)
 	if err != nil {
