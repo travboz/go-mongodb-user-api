@@ -18,6 +18,8 @@ func (app *application) HelloHandler(w http.ResponseWriter, r *http.Request) {
 
 // CreateUser - create a new user
 func (app *application) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var user models.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -25,12 +27,7 @@ func (app *application) CreateUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err := a.store.Insert(user)
-
-	user.ID = primitive.NewObjectID()
-
-	collection := app.Storage.Database("mongo_user_crud").Collection("users")
-	_, err = collection.InsertOne(context.Background(), user)
+	err = app.Storage.Insert(ctx, user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
