@@ -64,7 +64,7 @@ func (a *application) GetAllUsersHandler(w http.ResponseWriter, r *http.Request)
 
 // GetUserById - fetch a user by a given id
 func (a *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
-	req_id := r.URL.Query().Get("id")
+	req_id := r.PathValue("id")
 	id, err := primitive.ObjectIDFromHex(req_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -85,7 +85,7 @@ func (a *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Request)
 
 // UpdateUser - update a user in the collection
 func (a *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
-	req_id := r.URL.Query().Get("id")
+	req_id := r.PathValue("id")
 	id, err := primitive.ObjectIDFromHex(req_id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -113,7 +113,7 @@ func (a *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 
 // DeleteUserById - remove a user from a collection by a specific id
 func (a *application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-	req_id := r.URL.Query().Get("id")
+	req_id := r.PathValue("id")
 
 	id, err := primitive.ObjectIDFromHex(req_id)
 	if err != nil {
