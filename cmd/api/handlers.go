@@ -1,28 +1,25 @@
-package handlers
+package main
 
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
-	"github.com/travboz/backend-projects/go-and-mongo-mohd/config"
 	"github.com/travboz/backend-projects/go-and-mongo-mohd/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// HelloHandler - a helath check handler
+func (a *application) HelloHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello there, welcome to the Mongo CRUD!")
+}
+
 // CreateUser - create a new user
-func CreateUser(w http.ResponseWriter, r *http.Request) {
-	client, err := config.ConnectToMongoDB()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	defer client.Disconnect(context.Background())
-
+func (a *application) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var user models.User
-	err = json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -30,7 +27,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user.ID = primitive.NewObjectID()
 
-	collection := client.Database("mongo_user_crud").Collection("users")
+	collection := a.Client.Database("mongo_user_crud").Collection("users")
 	result, err := collection.InsertOne(context.Background(), user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -41,15 +38,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetAllUsers - get all users within the collection
-func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	client, err := config.ConnectToMongoDB()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer client.Disconnect(context.Background())
-
-	collection := client.Database("mongo_user_crud").Collection("users")
+func (a *application) GetAllUsersHandler(w http.ResponseWriter, r *http.Request) {
+	collection := a.Client.Database("mongo_user_crud").Collection("users")
 	cursor, err := collection.Find(context.Background(), bson.D{})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -73,14 +63,7 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetUserById - fetch a user by a given id
-func GetUserById(w http.ResponseWriter, r *http.Request) {
-	client, err := config.ConnectToMongoDB()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer client.Disconnect(context.Background())
-
+func (a *application) GetUserByIdHandler(w http.ResponseWriter, r *http.Request) {
 	req_id := r.URL.Query().Get("id")
 	id, err := primitive.ObjectIDFromHex(req_id)
 	if err != nil {
@@ -88,7 +71,7 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := client.Database("mongo_user_crud").Collection("users")
+	collection := a.Client.Database("mongo_user_crud").Collection("users")
 	var user models.User
 	result := collection.FindOne(context.Background(), bson.M{"_id": id})
 
@@ -101,14 +84,7 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateUser - update a user in the collection
-func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	client, err := config.ConnectToMongoDB()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer client.Disconnect(context.Background())
-
+func (a *application) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	req_id := r.URL.Query().Get("id")
 	id, err := primitive.ObjectIDFromHex(req_id)
 	if err != nil {
@@ -122,7 +98,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := client.Database("mongo_user_crud").Collection("users")
+	collection := a.Client.Database("mongo_user_crud").Collection("users")
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": updatedUser}
 
@@ -136,16 +112,8 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteUserById - remove a user from a collection by a specific id
-func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	client, err := config.ConnectToMongoDB()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer client.Disconnect(context.Background())
-
+func (a *application) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	req_id := r.URL.Query().Get("id")
-	// maybe need: r.PathValue("id") // instead
 
 	id, err := primitive.ObjectIDFromHex(req_id)
 	if err != nil {
@@ -153,7 +121,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	collection := client.Database("mongo_user_crud").Collection("users")
+	collection := a.Client.Database("mongo_user_crud").Collection("users")
 	filter := bson.M{"_id": id}
 	result, err := collection.DeleteOne(context.Background(), filter)
 	if err != nil {

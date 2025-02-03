@@ -1,4 +1,4 @@
-package config
+package main
 
 import (
 	"context"
@@ -9,7 +9,11 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func ConnectToMongoDB() (*mongo.Client, error) {
+type application struct {
+	Client *mongo.Client
+}
+
+func NewApplication() (*application, error) {
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
 		return nil, fmt.Errorf("MONGODB_URI is not set")
@@ -27,5 +31,11 @@ func ConnectToMongoDB() (*mongo.Client, error) {
 		return nil, err
 	}
 
-	return client, nil
+	return &application{
+		Client: client,
+	}, nil
+}
+
+func (a *application) Shutdown(ctx context.Context) error {
+	return a.Client.Disconnect(ctx)
 }

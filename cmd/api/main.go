@@ -1,13 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/joho/godotenv"
-	"github.com/travboz/backend-projects/go-and-mongo-mohd/internal/handlers"
 )
 
 func init() {
@@ -19,14 +19,26 @@ func init() {
 }
 
 func main() {
+	app, err := NewApplication()
+	if err != nil {
+		log.Fatalf("Failed to initialize application: %v", err)
+	}
+
+	// Ensure MongoDB disconnects when the program exits
+	defer func() {
+		if err := app.Shutdown(context.Background()); err != nil {
+			log.Printf("Error shutting down MongoDB client: %v", err)
+		}
+	}()
+
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /", handlers.HelloHandler)
-	mux.HandleFunc("POST /users", handlers.CreateUser)
-	mux.HandleFunc("GET /users", handlers.GetAllUsers)
-	mux.HandleFunc("GET /users/{id}", handlers.GetUserById)
-	mux.HandleFunc("PUT /users/{id}", handlers.UpdateUser)
-	mux.HandleFunc("DELETE /users/{id}", handlers.DeleteUser)
+	mux.HandleFunc("GET /", app.HelloHandler)
+	mux.HandleFunc("POST /users", app.CreateUserHandler)
+	mux.HandleFunc("GET /users", app.GetAllUsersHandler)
+	mux.HandleFunc("GET /users/{id}", app.GetUserByIdHandler)
+	mux.HandleFunc("PUT /users/{id}", app.UpdateUserHandler)
+	mux.HandleFunc("DELETE /users/{id}", app.DeleteUserHandler)
 
 	addr := os.Getenv("SERVER_PORT")
 
